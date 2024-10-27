@@ -58,22 +58,26 @@ def find_and_replace_in_file(file_path, find_text, replace_text):
     except Exception as e:
         logging.error(f"An error occurred with {file_path}: {e}")
 
-# Function to initialize logging to a file with timestamp
+# Function to initialize logging with UTF-8 BOM
 def initialize_logging(csv_file_path, log_level):
     # Get the directory where the CSV is located
     csv_directory = os.path.dirname(csv_file_path)
-    
+
     # Create a log file name with timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_file_name = f"replace_log_{timestamp}.txt"
     log_file_path = os.path.join(csv_directory, log_file_name)
 
-    # Configure logging
+    # Write BOM to the log file manually and use it for logging
+    with open(log_file_path, 'w', encoding='utf-8-sig') as log_file:
+        log_file.write('\ufeff')  # UTF-8 BOM
+
+    # Set up the logging configuration to use the opened log file
     logging.basicConfig(
         filename=log_file_path,
         level=log_level,
         format='%(asctime)s - %(levelname)s - %(message)s',
-        filemode='w'
+        filemode='a'  # Append mode after BOM
     )
     logging.info("Logging started.")
     return log_file_path
@@ -91,14 +95,9 @@ def parse_arguments():
     )
     parser.add_argument(
         "--log", 
-        action="store_true",  # This flag indicates whether to enable logging
-        help="Enable logging to a file (default: no logging)"
-    )
-    parser.add_argument(
-        "--log-level", 
-        default="INFO", 
-        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        help="Set the logging level (default: INFO)"
+        default="NONE",  # Default to no logging
+        choices=["NONE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        help="Set the logging level (default: NONE, which means no logging)"
     )
     return parser.parse_args()
 
@@ -109,14 +108,14 @@ if __name__ == "__main__":
 
     csv_file_path = args.csv_file
     target_directory = args.target_directory
-    log_level = getattr(logging, args.log_level)
 
-    # Initialize logging if the --log flag is provided
-    if args.log:
+    # Check if logging is needed (i.e., --log is not "NONE")
+    if args.log_level != "NONE":
+        log_level = getattr(logging, args.log_level)
         log_file_path = initialize_logging(csv_file_path, log_level)
         print(f"Log file created: {log_file_path}")
     else:
-        logging.basicConfig(level=log_level)  # Logging to console only
+        logging.basicConfig(level=logging.CRITICAL)  # Disable all logging to file or console
         print("Logging is disabled. No log file will be created.")
 
     # Read the replacement pairs from the CSV file
