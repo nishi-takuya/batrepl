@@ -115,8 +115,8 @@ if __name__ == "__main__":
     target_directory = args.target_directory
 
     # Check if logging is needed (i.e., --log is not "NONE")
-    if args.log_level != "NONE":
-        log_level = getattr(logging, args.log_level)
+    if args.log != "NONE":
+        log_level = getattr(logging, args.log)
         log_file_path = initialize_logging(csv_file_path, log_level)
         print(f"Log file created: {log_file_path}")
     else:
