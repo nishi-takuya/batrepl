@@ -27,10 +27,15 @@ def read_replace_pairs(csv_file):
     with codecs.open(csv_file, 'r', encoding=encoding) as f:
         reader = csv.reader(f, skipinitialspace=True, quotechar='"', doublequote=True)
         for row in reader:
-            if len(row) == 2:
+            if len(row) >= 2:
                 before_replace = row[0].replace('""', '"')
                 after_replace = row[1].replace('""', '"')
                 replace_pairs.append((before_replace, after_replace))
+
+                if len(row) > 2:
+                    third_column = row[2]
+                    logging.info(f"Note: {third_column}")
+
     return replace_pairs
 
 # Function to perform find and replace in a file with UTF-8 error handling
