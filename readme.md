@@ -1,198 +1,153 @@
-# batrepl
+## 📖 Table of Contents
 
-このPythonスクリプトは、指定されたディレクトリ内のテキストベースやコードファイルに対して、CSVファイルに記載された文字列の置換を自動的に行います。また、必要に応じてログを生成し、置換操作の結果を記録します。
+- [📖 Table of Contents](#-table-of-contents)
+- [📝Description](#description)
+- [✨Features](#features)
+- [⚙️Installation Instructions](#️installation-instructions)
+- [🚀 Usage Guide](#-usage-guide)
+    - [Command-line Options and Parameters](#command-line-options-and-parameters)
+    - [CSV File Format](#csv-file-format)
+        - [Column Definitions](#column-definitions)
+        - [CSV Format Requirements](#csv-format-requirements)
+        - [Sample CSV File](#sample-csv-file)
+            - [**Explanation**](#explanation)
+- [📁 Examples](#-examples)
+- [🔬 How It Works](#-how-it-works)
+- [✅ Prerequisites](#-prerequisites)
+- [📜 License](#-license)
+- [📬 Contact Information](#-contact-information)
 
-## 1. 基本機能の説明
+## 📝Description
 
-### 1-1. 機能
+A command-line tool designed to perform batch find and replace operations across HTML and JS files within a specified directory, using a CSV file for replacement instructions. The tool supports UTF-8 and Shift-JIS encoded files and logs operations for transparency.
 
-1. 指定されたCSVファイルに基づいて、ターゲットディレクトリ内における指定したファイルタイプを持つテキストファイルの文字列を置換します。
-2. ログ機能を有し、操作の詳細を記録します。
-3. 対象とするファイル拡張子を指定することもできます。
+## ✨Features
 
-### 1-2. 主な処理の流れ
+- Reads find-and-replace pairs from a CSV file.
+- Detects file encoding (UTF-8 and Shift-JIS).
+- Processes files with UTF-8 error handling.
+- Logs operations to a UTF-8 BOM log file.
+- Command-line interface with easy-to-use options.
 
-1. 開始
-    コマンドラインから[実行](#how_to_run)すると [パラメータ](#parameters)から入力データや動作条件等を認識します。
-2. 文字コードの判定
-    [CSVファイル](#csv_file_format)の文字コードを判定し、適切なエンコードで読み取ります。
-3. CSVから置換ペアの取得
-    CSVファイルを読み込み、置換する文字列のペアを取得します。
-4. ターゲットファイルの置換処理
-    指定されたディレクトリ内の指定した拡張子（[省略](#default_target_file_types)も可）を持つファイルに対して、CSVで指定された文字列の置換を[置換ルール](#replacement_rule)にそって行います。
-5. ログの生成
-    必要に応じて、置換操作のログを`UTF-8 with BOM`エンコードで作成します。
+## ⚙️Installation Instructions
 
-## 2. 使い方
+1. Ensure Python 3.9 or higher is installed.
+2. Clone this repository or download the script.
+3. Install any necessary dependencies (e.g., `pip install -r requirements.txt`).
 
-### 2-1. 実行方法 {#how_to_run}
+## 🚀 Usage Guide
 
-1. あらかじめPythonスクリプトが実行できる環境は準備しておきます。
-2. 以下のようにコマンドラインで実行します。
+Run the script from the command line with the following syntax:
 
-    ``` shell
-    python batrepl.py {CSVファイルのパス} {ターゲットディレクトリのパス} --log {ログレベル} --file-types {拡張子}
-    ```
-
-### 2-2. 引数 {#parameters}
-
-| パラメータ          | 説明                                                    |
-| :------------------ | :------------------------------------------------------ |
-| {CSVファイルのパス} | 置換ペアを記載した[CSVファイル](#csv_file_format)のパス |
-{ターゲットディレクトリのパス} | 置換対象のファイルがあるディレクトリのパス
-|--log | [{ログレベル}](#log_level_detail) を指定します。|
-| --file-types | 処理するファイルタイプをあらわす {拡張子} を指定します。 <br> 例：`-file-types .txt .html .js` <br> 指定がない場合、[一般的なテキストベースやコードファイル](#default_target_file_types)が対象になります。 |
-
-### 2-3. CSVファイルのフォーマット {#csv_file_format}
-
-1. エンコーディングは`UTF-8`、`UTF-8 with BOM`、`Shift-JIS`に対応しています。
-
-2. フォーマットとしては各行がそれぞれの置換指示になっており、2つのカラムからなっています。
-1つ目が置換前の文字列、2つ目が置換後の文字列です。
-各文字列はダブルクォートで囲むか、ダブルクォートなしの形式もサポートされます（例：`Hello`, `こんにちは` も許可されます）。
-ダブルクォート内にエスケープが必要な場合、"" でエスケープします（例: "" は " に変換されます）。
-CSVファイルの例：
-
-    ```csv
-    "Hello", "こんにちは"
-    "World", "世界"
-    "Goodbye", "さようなら"
-    "SampleText", "サンプルテキスト"
-    """QuotedText""", """引用されたテキスト"""
-    "Name ""John""", "名前 ""ジョン"""
-    ```
-
-### 2-4. ログレベルの詳細 {#log_level_detail}
-
-| パラメータ | ログレベル                       |
-| :--------- | :------------------------------- |
-| NONE       | ログを生成しません。             |
-| DEBUG      | 詳細なデバッグ情報を記録します。 |
-| INFO       | 基本的な情報を記録します。       |
-| WARNING    | 警告メッセージを記録します。     |
-| ERROR      | エラーメッセージを記録します。   |
-| CRITICAL   | 致命的なエラーのみを記録します。 |
-
-### 2-5. デフォルトの対象ファイル {#default_target_file_types}
-
-1. 以下の拡張子がデフォルトで対象となります：
-
-    ``` plaintext
-    .txt, .md, .html, .js, .css, .json, .xml, .py, .java, .cpp, 
-    .c, .cs, .rb, .sh, .bat, .php, .ini, .yml, .yaml, .toml, .cfg
-    ```
-
-### 2-6. 置換ルール {#replacement_rule}
-
-1. 置換は以下のルールで行います。
-
-    - 単純文字列マッチング: 特定のパターンや正規表現を使用せず、文字列そのものを検索します。
-    - 部分一致でも置換: 指定された文字列がファイル内に含まれていれば、部分一致も含めてすべての一致箇所を置換します（例: "Hello" という検索文字列が "HelloWorld" の中にあれば、それも置換されます）。
-    - 大文字・小文字を区別: 検索は大文字・小文字を区別します。たとえば、"Hello" と "hello" は別の文字列として扱われます。
-    - 置換はすべての一致箇所に対して実行: ファイル内に複数箇所で検索対象文字列が見つかった場合、すべての箇所で置換が行われます。
-
-### 2-7. コマンドライン実行例 {#execution_example}
-
-```shell
-python batrepl.py "replace_pairs.csv" "C:\target_directory" --log INFO --file-types .txt .html
+```sh
+python batrepl.py -s <path_to_csv> -t <target_directory> -l <log_level>
 ```
 
-## 3. 出力
+### Command-line Options and Parameters
 
-### 3-1. 置換操作の結果
+- `-s, --source`: Path to the CSV file containing find-and-replace instructions (required).
+- `-t, --target`: Path to the directory where the replacements will be performed (required).
+- `-l, --log`: Logging level (`NONE`, `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`). Default is `NONE`.
 
-1. 指定されたディレクトリ内の対象拡張子を持つファイルに対して、指定された文字列の置換が行われます。
-2. 置換が成功した場合、ファイルが更新され、ログにその情報が記録されます。
+### CSV File Format
 
-### 3-2. ログファイル
+The input CSV file should contain rows where each row specifies a "find" text and its corresponding "replace" text. An optional third column can include notes, which are logged during processing but do not affect the replacement process.
 
-1. ログファイルは、指定したディレクトリに作成されます。
-2. ファイル名はreplace_log_YYYYMMDD_HHMMSS.txtの形式です。
-3. 内容は個々の検索/置換結果に対してそれぞれ以下の項目が列記されます。
-    (1) 置換が行われた場合：
+#### Column Definitions
 
-    ```plaintext
-    2024-10-27 14:35:12 - INFO - Replaced 'Hello' with 'こんにちは' in C:\target_directory\example.html
-    2024-10-27 14:35:12 - INFO - Replaced 'World' with '世界' in C:\target_directory\example.html
-    ```
+1. **Find Text (Column 1)**: The text to search for in the target files.
+2. **Replace Text (Column 2)**: The text that will replace occurrences of the "find" text.
+3. **Notes (Optional, Column 3)**: Additional notes related to the replacement. These are logged for informational purposes.
 
-    (2) 置換対象が見つからなかった場合：
+#### CSV Format Requirements
 
-    ```plaintext
-    2024-10-27 14:36:15 - DEBUG - No replacement for 'Goodbye' in C:\target_directory\example.html, content unchanged.
-    ```
+- The file encoding must be either UTF-8 or Shift-JIS. The program will attempt to detect and read the correct encoding.
+- Double quotes (`""`) within cells should be interpreted as a single quote (`"`).
 
-    (3) ファイルアクセス権限が不足している場合：
+#### Sample CSV File
 
-    ```plaintext
-    2024-10-27 14:37:22 - ERROR - Permission error: [Errno 13] Permission denied: 'C:\target_directory\protected_file.html'. Skipping C:\target_directory\protected_file.html.
-    ```
+```csv
+find_text_simple,replace_text_simple,Example without double quotes
+"find_text_1","replace_text_1","This is a note about the first replacement"
+"find_text_2","replace_text_2"
+"special_characters_&_symbols","updated_version","Handles & symbols"
+"text_with_quotes","text with ""escaped quotes""","Double quotes in the text"
+```
 
-    (4) CSVファイルの読み込みに失敗した場合：
+##### **Explanation**
 
-    ```plaintext
-    2024-10-27 14:38:45 - ERROR - Error reading CSV: Unable to detect file encoding for C:\target_directory\replace_pairs.csv.
-    ```
+- The first row shows a simple find-and-replace without surrounding double quotes.
+- The second row replaces `find_text_1` with `replace_text_1` and logs a note.
+- The third row performs a simple replacement without logging a note.
+- The fourth row demonstrates handling special characters and symbols.
+- The fifth row shows how to escape double quotes within text using double double quotes.
 
-### 3-3. エラー処理
+## 📁 Examples
 
-1. ファイルアクセスエラー
-   PermissionError：ファイルにアクセスできない場合、ログにエラーメッセージが記録され、処理はスキップされます。
-2. デコードエラー
-   UnicodeDecodeError：CSVファイルの文字コードが認識できない場合、エラーメッセージが記録されます。
+1. **Basic Replacement with Logging Enabled**:
 
-## 4. コードの詳細
+   ```sh
+   python batrepl.py -s replacements.csv -t ./website_files -l INFO
+   ```
 
-### 4-1. 文字コード判定関数 {#detect_encoding}
+   This command reads replacement pairs from `replacements.csv`, performs replacements in all `.html` and `.js` files within the `website_files` directory, and logs actions at the `INFO` level.
 
-| 項目   | 説明                                                                                                   |
-| :------ | :------------------------------------------------------------------------------------------------------ |
-| 定義   | `def detect_encoding(file_path):`                                                                      |
-| 機能   | ファイルの文字コード（UTF-8またはShift-JIS）を自動判定します。                                         |
-| 仮引数 | `file_path` (文字列型、読み込むファイルのパス)                                                         |
-| 戻り値 | 検出された文字エンコーディング（'utf-8' または 'shift-jis'）。検出できなかった場合は`None`を返します。 |
+2. **Replacement with Logging Disabled (Implicit)**:
 
-### 4-2. 置換ペア取得関数 {#read_replace_pairs}
+   ```sh
+   python batrepl.py -s replacements.csv -t ./project_folder
+   ```
 
-| 項目   | 説明                                                                         |
-| :------ | :---------------------------------------------------------------------------- |
-| 定義   | `def read_replace_pairs(csv_file):`                                          |
-| 機能   | CSVファイルから置換ペア（置換前後の文字列）を読み取ります。                  |
-| 仮引数 | `csv_file` (文字列型、CSVファイルのパス)                                     |
-| 戻り値 | 置換ペア（タプルのリスト）。各タプルは (置換前文字列, 置換後文字列) の形式。 |
+   This command runs the tool without generating any logs, as logging is disabled by default.
 
-### 4-3. 置換処理関数 {#find_and_replace_in_file}
+3. **Replacement with Logging Disabled (Explicit)**:
 
-| 項目   | 説明                                                                                                                                  |
-| :------ | :------------------------------------------------------------------------------------------------------------------------------------- |
-| 定義   | `def find_and_replace_in_file(file_path, find_text, replace_text):`                                                                   |
-| 機能   | 指定されたファイル内の文字列を検索して置換します。                                                                                    |
-| 仮引数 | `file_path` (文字列型、対象ファイルのパス) <br> `find_text` (文字列型、検索する文字列) <br> `replace_text` (文字列型、置換後の文字列) |
-| 戻り値 | なし。置換が実行された場合、ファイルを更新します。                                                                                    |
+   ```sh
+   python batrepl.py -s replacements.csv -t ./project_folder -l NONE
+   ```
 
-### 4-4. ログ初期化関数 {#initialize_logging}
+   This command also runs the tool without logging, but here the `-l NONE` parameter explicitly disables logging.
 
-| 項目   | 説明                                                                                            |
-| :------ | :----------------------------------------------------------------------------------------------- |
-| 定義   | `def initialize_logging(csv_file_path, log_level):`                                             |
-| 機能   | 置換操作に関するログファイルを作成し、ログ設定を行います。                                      |
-| 仮引数 | `csv_file_path` (文字列型、CSVファイルのパス) <br> `log_level` (ログレベル、例: `logging.INFO`) |
-| 戻り値 | 作成されたログファイルのパス。                                                                  |
+4. **Processing a Large Directory with Debug Logs**:
 
-### 4-5. コマンドライン引数解析関数 {#parse_arguments}
+   ```sh
+   python batrepl.py -s find_replace_pairs.csv -t /var/www/html -l DEBUG
+   ```
 
-| 項目   | 説明                                                                 |
-| :------ | :-------------------------------------------------------------------- |
-| 定義   | `def parse_arguments():`                                             |
-| 機能   | コマンドライン引数を解析し、指定されたオプションやパスを取得します。 |
-| 仮引数 | なし                                                                 |
-| 戻り値 | 解析されたコマンドライン引数（`argparse.Namespace` オブジェクト）。  |
+   This command reads replacement instructions from `find_replace_pairs.csv`, processes all matching files in the `/var/www/html` directory, and logs detailed debug information.
 
-### 4-6. メインルーチン {#main_routine}
+5. **Replacing Content in a Specific Subdirectory**:
 
-| 項目   | 説明                                                                                  |
-| :------ | :------------------------------------------------------------------------------------- |
-| 定義   | `if __name__ == "__main__":`                                                          |
-| 機能   | すべての処理を統括し、コマンドライン引数に基づいてCSVファイルの置換処理を実行します。 |
-| 仮引数 | なし（コマンドライン引数は[parse_arguments()](#parse_arguments)で取得）               |
-| 戻り値 | なし（プログラムの終了コードとして、エラーがあれば exit() を使用）                    |
+   ```sh
+   python batrepl.py -s replace_list.csv -t ./app/scripts -l WARNING
+   ```
+
+   This command applies replacements only within the `./app/scripts` directory and logs warnings or higher-level messages.
+
+6. **Verbose Logging for Testing Purposes**:
+
+   ```sh
+   python batrepl.py -s test_pairs.csv -t ./sandbox -l DEBUG
+   ```
+
+   Ideal for testing and development, this command runs with `DEBUG` logging to provide in-depth details about each replacement action in the `./sandbox` directory.
+
+## 🔬 How It Works
+
+1. The tool detects the encoding of the provided CSV file and reads find-and-replace pairs.
+2. It recursively scans the target directory for `.html` and `.js` files.
+3. Each file is read and modified if a match is found, and the result is saved.
+4. Logs are created in a specified location if logging is enabled.
+
+## ✅ Prerequisites
+
+- Python 3.9 or higher
+- `argparse`, `csv`, `codecs`, `logging`, and `pathlib` modules (standard Python library).
+
+## 📜 License
+
+This project is licensed under the MIT License. You can use, copy, modify, and distribute this software under the terms of the MIT License. See the [LICENSE](LICENSE.md) file for the full text.
+
+## 📬 Contact Information
+
+For any questions or support, please contact the [authors](authors.md).

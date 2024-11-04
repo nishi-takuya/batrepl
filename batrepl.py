@@ -4,9 +4,19 @@ import codecs
 import logging
 from datetime import datetime
 import argparse
+from typing import List, Tuple, Optional
+from pathlib import Path
 
-# Function to detect encoding (UTF-8 or Shift-JIS)
-def detect_encoding(file_path):
+def detect_encoding(file_path: str) -> Optional[str]:
+    """
+    Detects the encoding of a given file by attempting to read it with UTF-8 and Shift-JIS.
+
+    Args:
+        file_path (str): Path to the file to be checked.
+
+    Returns:
+        Optional[str]: Detected encoding if successful, None otherwise.
+    """
     encodings = ['utf-8', 'shift-jis']
     for encoding in encodings:
         try:
@@ -17,11 +27,22 @@ def detect_encoding(file_path):
             continue
     return None
 
-# Function to read the CSV and get the replace pairs
-def read_replace_pairs(csv_file):
+def read_replace_pairs(csv_file: str) -> List[Tuple[str, str]]:
+    """
+    Reads replacement pairs from a CSV file and logs any additional notes found.
+
+    Args:
+        csv_file (str): Path to the CSV file.
+
+    Returns:
+        List[Tuple[str, str]]: List of tuples containing find and replace text.
+
+    Raises:
+        ValueError: If the file encoding cannot be detected.
+    """
     encoding = detect_encoding(csv_file)
     if encoding is None:
-        raise ValueError("Unable to detect file encoding.")
+        raise ValueError("Unable to detect file encoding for the CSV file.")
     
     replace_pairs = []
     with codecs.open(csv_file, 'r', encoding=encoding) as f:
@@ -38,108 +59,108 @@ def read_replace_pairs(csv_file):
 
     return replace_pairs
 
-# Function to perform find and replace in a file with UTF-8 error handling
-def find_and_replace_in_file(file_path, find_text, replace_text):
+def find_and_replace_in_file(file_path: str, find_text: str, replace_text: str) -> None:
+    """
+    Performs find and replace in a file with UTF-8 error handling and logs the result.
+
+    Args:
+        file_path (str): Path to the file to be processed.
+        find_text (str): Text to find in the file.
+        replace_text (str): Text to replace the found text with.
+    """
     try:
-        # Open the file with UTF-8, replacing invalid characters
-        with open(file_path, 'r', encoding='utf-8', errors='replace') as file:
+        with open(file_path, 'r', encoding='utf-8-sig', errors='replace') as file:
             content = file.read()
 
-        # Perform the replacement
         new_content = content.replace(find_text, replace_text)
 
-        # Only write back if the content has changed
         if new_content != content:
-            with open(file_path, 'w', encoding='utf-8') as file:
+            with open(file_path, 'w', encoding='utf-8-sig') as file:
                 file.write(new_content)
-
-            # Log the replacement only if it actually happened
             logging.info(f"Replaced '{find_text}' with '{replace_text}' in {file_path}")
         else:
-            logging.debug(f"No replacement for '{find_text}' in {file_path}, content unchanged.")
+            logging.debug(f"No change for '{find_text}' in {file_path}.")
 
     except PermissionError as e:
-        logging.error(f"Permission error: {e}. Skipping {file_path}.")
+        logging.error(f"Permission error while processing {file_path}: {e}.")
     except Exception as e:
-        logging.error(f"An error occurred with {file_path}: {e}")
+        logging.error(f"An error occurred while processing {file_path}: {e}.")
 
-# Function to initialize logging with UTF-8 BOM
-def initialize_logging(csv_file_path, log_level):
-    # Get the directory where the CSV is located
-    csv_directory = os.path.dirname(csv_file_path)
+def initialize_logging(log_level: int, destination: str) -> str:
+    """
+    Initializes the logging configuration and creates a log file with a UTF-8 BOM.
 
-    # Create a log file name with timestamp
+    Args:
+        log_level (int): The logging level.
+        destination (str): Directory where the log file will be saved.
+
+    Returns:
+        str: Path to the log file created.
+    """
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_file_name = f"replace_log_{timestamp}.txt"
-    log_file_path = os.path.join(csv_directory, log_file_name)
+    log_file_path = os.path.join(destination, log_file_name)
 
-    # Write BOM to the log file manually and use it for logging
     with open(log_file_path, 'w', encoding='utf-8-sig') as log_file:
-        log_file.write('\ufeff')  # UTF-8 BOM
+        log_file.write('\ufeff')
 
-    # Set up the logging configuration to use the opened log file
     logging.basicConfig(
         filename=log_file_path,
         level=log_level,
         format='%(asctime)s - %(levelname)s - %(message)s',
-        filemode='a'  # Append mode after BOM
+        filemode='a',
+        encoding='utf-8-sig'
     )
-    logging.info("Logging started.")
+    logging.info("Logging initialized.")
     return log_file_path
 
-# Function to parse command-line arguments (CLI)
-def parse_arguments():
-    parser = argparse.ArgumentParser(description="batrepl - Batch Find and Replace in HTML/JS Files")
-    parser.add_argument(
-        "csv_file", 
-        help="Path to the CSV file containing the replacement instructions"
-    )
-    parser.add_argument(
-        "target_directory", 
-        help="Path to the target directory where replacements will be made"
-    )
-    parser.add_argument(
-        "--log", 
-        default="NONE",  # Default to no logging
-        choices=["NONE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        help="Set the logging level (default: NONE, which means no logging)"
-    )
+def parse_arguments() -> argparse.Namespace:
+    """
+    Parses command-line arguments for the batch find and replace tool.
+
+    Returns:
+        argparse.Namespace: Parsed arguments.
+    """
+    parser = argparse.ArgumentParser(description="Batch find and replace tool for HTML/JS files.")
+    parser.add_argument("-s", "--source", required=True, help="Path to the CSV file containing find and replace instructions.")
+    parser.add_argument("-t", "--target", required=True, help="Path to the directory where replacements will be performed.")
+    parser.add_argument("-l", "--log", choices=["NONE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+                        default="NONE", help="Set the logging level (default: NONE).")
     return parser.parse_args()
 
-# Main function
-if __name__ == "__main__":
-    # Parse command-line arguments
+def main() -> None:
+    """
+    Main function to run the batch find and replace operation.
+    """
     args = parse_arguments()
 
-    csv_file_path = args.csv_file
-    target_directory = args.target_directory
+    csv_file_path = args.source
+    target_directory = Path(args.target).resolve() # args.target
+    log_level = getattr(logging, args.log) if args.log != "NONE" else logging.CRITICAL
 
-    # Check if logging is needed (i.e., --log is not "NONE")
     if args.log != "NONE":
-        log_level = getattr(logging, args.log)
-        log_file_path = initialize_logging(csv_file_path, log_level)
+        log_file_path = initialize_logging(log_level, os.path.dirname(csv_file_path))
         print(f"Log file created: {log_file_path}")
     else:
-        logging.basicConfig(level=logging.CRITICAL)  # Disable all logging to file or console
-        print("Logging is disabled. No log file will be created.")
+        logging.basicConfig(level=logging.CRITICAL)
+        print("Logging is disabled.")
 
-    # Read the replacement pairs from the CSV file
     try:
         find_replace_pairs = read_replace_pairs(csv_file_path)
     except ValueError as e:
-        logging.error(f"Error reading CSV: {e}")
-        exit()
+        print(f"Error reading CSV file: {e}")
+        logging.error(f"Error reading CSV file: {e}")
+        return
 
-    # Iterate over all files in the target directory and subdirectories
-    for root, dirs, files in os.walk(target_directory):
+    for root, _, files in os.walk(target_directory):
         for file_name in files:
-            # Only process .html and .js files
             if file_name.lower().endswith(('.html', '.js')):
                 file_path = os.path.join(root, file_name)
-
-                # Perform find-and-replace for each pair in each .html or .js file
                 for find_text, replace_text in find_replace_pairs:
                     find_and_replace_in_file(file_path, find_text, replace_text)
 
     logging.info("Replacement operation completed.")
     print("Replacement operation completed.")
+
+if __name__ == "__main__":
+    main()
