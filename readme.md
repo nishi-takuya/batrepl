@@ -5,12 +5,12 @@
 - [✨Features](#features)
 - [⚙️Installation Instructions](#️installation-instructions)
 - [🚀 Usage Guide](#-usage-guide)
-    - [Command-line Options and Parameters](#command-line-options-and-parameters)
-    - [CSV File Format](#csv-file-format)
-        - [Column Definitions](#column-definitions)
-        - [CSV Format Requirements](#csv-format-requirements)
-        - [Sample CSV File](#sample-csv-file)
-            - [**Explanation**](#explanation)
+  - [Command-line Options and Parameters](#command-line-options-and-parameters)
+  - [CSV File Format](#csv-file-format)
+    - [Column Definitions](#column-definitions)
+    - [CSV Format Requirements](#csv-format-requirements)
+    - [Sample CSV File](#sample-csv-file)
+      - [**Explanation**](#explanation)
 - [📁 Examples](#-examples)
 - [🔬 How It Works](#-how-it-works)
 - [✅ Prerequisites](#-prerequisites)
@@ -19,13 +19,14 @@
 
 ## 📝Description
 
-A command-line tool designed to perform batch find and replace operations across HTML and JS files within a specified directory, using a CSV file for replacement instructions. The tool supports UTF-8 and Shift-JIS encoded files and logs operations for transparency.
+A command-line tool designed to perform batch find and replace operations across various file types within a specified directory, using a CSV file for replacement instructions. The tool supports UTF-8 and Shift-JIS encoded files and logs operations for transparency. Users can specify the file extensions they want to target, making it flexible for different project needs.
 
 ## ✨Features
 
 - Reads find-and-replace pairs from a CSV file.
 - Detects file encoding (UTF-8 and Shift-JIS).
 - Processes files with UTF-8 error handling.
+- Supports user-defined file types (e.g., .html, .js, .css).
 - Logs operations to a UTF-8 BOM log file.
 - Command-line interface with easy-to-use options.
 
@@ -40,13 +41,14 @@ A command-line tool designed to perform batch find and replace operations across
 Run the script from the command line with the following syntax:
 
 ```sh
-python batrepl.py -s <path_to_csv> -t <target_directory> -l <log_level>
+python batrepl.py -s <path_to_csv> -t <target_directory> -f <file_types> -l <log_level>
 ```
 
 ### Command-line Options and Parameters
 
 - `-s, --source`: Path to the CSV file containing find-and-replace instructions (required).
 - `-t, --target`: Path to the directory where the replacements will be performed (required).
+- `-f, --file-type`: List of file extensions to target (default: `['.txt']`). Specify multiple types as needed (e.g., `.html`, `.js`, `.css`).
 - `-l, --log`: Logging level (`NONE`, `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`). Default is `NONE`.
 
 ### CSV File Format
@@ -84,58 +86,58 @@ find_text_simple,replace_text_simple,Example without double quotes
 
 ## 📁 Examples
 
-1. **Basic Replacement with Logging Enabled**:
+1. **Basic Replacement with Multiple File Types and Logging Enabled**:
 
-   ```sh
-   python batrepl.py -s replacements.csv -t ./website_files -l INFO
-   ```
+    ```sh
+    python batrepl.py -s replacements.csv -t ./website_files -f .html .js .css -l INFO
+    ```
 
-   This command reads replacement pairs from `replacements.csv`, performs replacements in all `.html` and `.js` files within the `website_files` directory, and logs actions at the `INFO` level.
+    This command reads replacement pairs from `replacements.csv`, performs replacements in `.html`, `.js`, and `.css` files within the `website_files` directory, and logs actions at the `INFO` level.
 
-2. **Replacement with Logging Disabled (Implicit)**:
+2. **Replacement with Default File Type (.txt) and Logging Disabled (Implicit)**:
 
-   ```sh
-   python batrepl.py -s replacements.csv -t ./project_folder
-   ```
+    ```sh
+    python batrepl.py -s replacements.csv -t ./project_folder
+    ```
 
-   This command runs the tool without generating any logs, as logging is disabled by default.
+    This command runs the tool without generating any logs and targets `.txt` files by default.
 
-3. **Replacement with Logging Disabled (Explicit)**:
+3. **Replacement with Specific File Types and Logging Disabled (Explicit)**:
 
-   ```sh
-   python batrepl.py -s replacements.csv -t ./project_folder -l NONE
-   ```
+    ```sh
+    python batrepl.py -s replacements.csv -t ./project_folder -f .md .txt -l NONE
+    ```
 
-   This command also runs the tool without logging, but here the `-l NONE` parameter explicitly disables logging.
+    This command explicitly specifies `.md` and `.txt` file types and disables logging.
 
-4. **Processing a Large Directory with Debug Logs**:
+4. **Processing a Large Directory with Debug Logs and Custom File Types**:
 
-   ```sh
-   python batrepl.py -s find_replace_pairs.csv -t /var/www/html -l DEBUG
-   ```
+    ```sh
+    python batrepl.py -s find_replace_pairs.csv -t /var/www/html -f .php .html -l DEBUG
+    ```
 
-   This command reads replacement instructions from `find_replace_pairs.csv`, processes all matching files in the `/var/www/html` directory, and logs detailed debug information.
+    This command reads replacement instructions from `find_replace_pairs.csv`, processes `.php` and `.html` files in the `/var/www/html` directory, and logs detailed debug information.
 
-5. **Replacing Content in a Specific Subdirectory**:
+5. **Replacing Content in a Specific Subdirectory with Multiple File Types**:
 
-   ```sh
-   python batrepl.py -s replace_list.csv -t ./app/scripts -l WARNING
-   ```
+    ```sh
+    python batrepl.py -s replace_list.csv -t ./app/scripts -f .js .json -l WARNING
+    ```
 
-   This command applies replacements only within the `./app/scripts` directory and logs warnings or higher-level messages.
+    This command applies replacements only within the `./app/scripts` directory, targeting `.js` and `.json` files and logging warnings or higher-level messages.
 
-6. **Verbose Logging for Testing Purposes**:
+6. **Verbose Logging for Testing Purposes with Custom File Types**:
 
-   ```sh
-   python batrepl.py -s test_pairs.csv -t ./sandbox -l DEBUG
-   ```
+    ```sh
+    python batrepl.py -s test_pairs.csv -t ./sandbox -f .log .config -l DEBUG
+    ```
 
-   Ideal for testing and development, this command runs with `DEBUG` logging to provide in-depth details about each replacement action in the `./sandbox` directory.
+    Ideal for testing and development, this command runs with `DEBUG` logging and targets `.log` and `.config` files.
 
 ## 🔬 How It Works
 
 1. The tool detects the encoding of the provided CSV file and reads find-and-replace pairs.
-2. It recursively scans the target directory for `.html` and `.js` files.
+2. It recursively scans the target directory for the specified file types.
 3. Each file is read and modified if a match is found, and the result is saved.
 4. Logs are created in a specified location if logging is enabled.
 

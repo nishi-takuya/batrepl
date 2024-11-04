@@ -7,6 +7,7 @@ import argparse
 from typing import List, Tuple, Optional
 from pathlib import Path
 
+
 def detect_encoding(file_path: str) -> Optional[str]:
     """
     Detects the encoding of a given file by attempting to read it with UTF-8 and Shift-JIS.
@@ -17,15 +18,16 @@ def detect_encoding(file_path: str) -> Optional[str]:
     Returns:
         Optional[str]: Detected encoding if successful, None otherwise.
     """
-    encodings = ['utf-8', 'shift-jis']
+    encodings = ["utf-8", "shift-jis"]
     for encoding in encodings:
         try:
-            with codecs.open(file_path, 'r', encoding=encoding) as f:
+            with codecs.open(file_path, "r", encoding=encoding) as f:
                 f.read()
             return encoding
         except UnicodeDecodeError:
             continue
     return None
+
 
 def read_replace_pairs(csv_file: str) -> List[Tuple[str, str]]:
     """
@@ -43,9 +45,9 @@ def read_replace_pairs(csv_file: str) -> List[Tuple[str, str]]:
     encoding = detect_encoding(csv_file)
     if encoding is None:
         raise ValueError("Unable to detect file encoding for the CSV file.")
-    
+
     replace_pairs = []
-    with codecs.open(csv_file, 'r', encoding=encoding) as f:
+    with codecs.open(csv_file, "r", encoding=encoding) as f:
         reader = csv.reader(f, skipinitialspace=True, quotechar='"', doublequote=True)
         for row in reader:
             if len(row) >= 2:
@@ -59,6 +61,7 @@ def read_replace_pairs(csv_file: str) -> List[Tuple[str, str]]:
 
     return replace_pairs
 
+
 def find_and_replace_in_file(file_path: str, find_text: str, replace_text: str) -> None:
     """
     Performs find and replace in a file with UTF-8 error handling and logs the result.
@@ -69,13 +72,13 @@ def find_and_replace_in_file(file_path: str, find_text: str, replace_text: str) 
         replace_text (str): Text to replace the found text with.
     """
     try:
-        with open(file_path, 'r', encoding='utf-8-sig', errors='replace') as file:
+        with open(file_path, "r", encoding="utf-8-sig", errors="replace") as file:
             content = file.read()
 
         new_content = content.replace(find_text, replace_text)
 
         if new_content != content:
-            with open(file_path, 'w', encoding='utf-8-sig') as file:
+            with open(file_path, "w", encoding="utf-8-sig") as file:
                 file.write(new_content)
             logging.info(f"Replaced '{find_text}' with '{replace_text}' in {file_path}")
         else:
@@ -85,6 +88,7 @@ def find_and_replace_in_file(file_path: str, find_text: str, replace_text: str) 
         logging.error(f"Permission error while processing {file_path}: {e}.")
     except Exception as e:
         logging.error(f"An error occurred while processing {file_path}: {e}.")
+
 
 def initialize_logging(log_level: int, destination: str) -> str:
     """
@@ -101,18 +105,19 @@ def initialize_logging(log_level: int, destination: str) -> str:
     log_file_name = f"replace_log_{timestamp}.txt"
     log_file_path = os.path.join(destination, log_file_name)
 
-    with open(log_file_path, 'w', encoding='utf-8-sig') as log_file:
-        log_file.write('\ufeff')
+    with open(log_file_path, "w", encoding="utf-8-sig") as log_file:
+        log_file.write("\ufeff")
 
     logging.basicConfig(
         filename=log_file_path,
         level=log_level,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        filemode='a',
-        encoding='utf-8-sig'
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        filemode="a",
+        encoding="utf-8-sig",
     )
     logging.info("Logging initialized.")
     return log_file_path
+
 
 def parse_arguments() -> argparse.Namespace:
     """
@@ -121,12 +126,37 @@ def parse_arguments() -> argparse.Namespace:
     Returns:
         argparse.Namespace: Parsed arguments.
     """
-    parser = argparse.ArgumentParser(description="Batch find and replace tool for HTML/JS files.")
-    parser.add_argument("-s", "--source", required=True, help="Path to the CSV file containing find and replace instructions.")
-    parser.add_argument("-t", "--target", required=True, help="Path to the directory where replacements will be performed.")
-    parser.add_argument("-l", "--log", choices=["NONE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-                        default="NONE", help="Set the logging level (default: NONE).")
+    parser = argparse.ArgumentParser(
+        description="Batch find and replace tool for specified file types."
+    )
+    parser.add_argument(
+        "-s",
+        "--source",
+        required=True,
+        help="Path to the CSV file containing find and replace instructions.",
+    )
+    parser.add_argument(
+        "-t",
+        "--target",
+        required=True,
+        help="Path to the directory where replacements will be performed.",
+    )
+    parser.add_argument(
+        "-f",
+        "--file-type",
+        nargs="+",
+        default=[".txt"],
+        help="List of file extensions to target (default: ['.txt']).",
+    )
+    parser.add_argument(
+        "-l",
+        "--log",
+        choices=["NONE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        default="NONE",
+        help="Set the logging level (default: NONE).",
+    )
     return parser.parse_args()
+
 
 def main() -> None:
     """
@@ -135,7 +165,8 @@ def main() -> None:
     args = parse_arguments()
 
     csv_file_path = args.source
-    target_directory = Path(args.target).resolve() # args.target
+    target_directory = Path(args.target).resolve()
+    file_types = [ftype.lower() if ftype.startswith('.') else f".{ftype.lower()}" for ftype in args.file_type]
     log_level = getattr(logging, args.log) if args.log != "NONE" else logging.CRITICAL
 
     if args.log != "NONE":
@@ -154,13 +185,14 @@ def main() -> None:
 
     for root, _, files in os.walk(target_directory):
         for file_name in files:
-            if file_name.lower().endswith(('.html', '.js')):
+            if any(file_name.lower().endswith(ext) for ext in file_types):
                 file_path = os.path.join(root, file_name)
                 for find_text, replace_text in find_replace_pairs:
                     find_and_replace_in_file(file_path, find_text, replace_text)
 
     logging.info("Replacement operation completed.")
     print("Replacement operation completed.")
+
 
 if __name__ == "__main__":
     main()
