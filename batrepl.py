@@ -102,7 +102,7 @@ def initialize_logging(log_level: int, destination: str) -> str:
         str: Path to the log file created.
     """
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_file_name = f"replace_log_{timestamp}.txt"
+    log_file_name = f"replace-log-{timestamp}.txt"
     log_file_path = os.path.join(destination, log_file_name)
 
     with open(log_file_path, "w", encoding="utf-8-sig") as log_file:

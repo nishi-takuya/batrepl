@@ -1,9 +1,9 @@
 ## 📖 Table of Contents
 
 - [📖 Table of Contents](#-table-of-contents)
-- [📝Description](#description)
-- [✨Features](#features)
-- [⚙️Installation Instructions](#️installation-instructions)
+- [📝 Description](#-description)
+- [✨ Features](#-features)
+- [⚙️ Installation Instructions](#️-installation-instructions)
 - [🚀 Usage Guide](#-usage-guide)
   - [Command-line Options and Parameters](#command-line-options-and-parameters)
   - [CSV File Format](#csv-file-format)
@@ -17,11 +17,11 @@
 - [📜 License](#-license)
 - [📬 Contact Information](#-contact-information)
 
-## 📝Description
+## 📝 Description
 
 A command-line tool designed to perform batch find and replace operations across various file types within a specified directory, using a CSV file for replacement instructions. The tool supports UTF-8 and Shift-JIS encoded files and logs operations for transparency. Users can specify the file extensions they want to target, making it flexible for different project needs.
 
-## ✨Features
+## ✨ Features
 
 - Reads find-and-replace pairs from a CSV file.
 - Detects file encoding (UTF-8 and Shift-JIS).
@@ -30,7 +30,7 @@ A command-line tool designed to perform batch find and replace operations across
 - Logs operations to a UTF-8 BOM log file.
 - Command-line interface with easy-to-use options.
 
-## ⚙️Installation Instructions
+## ⚙️ Installation Instructions
 
 1. Ensure Python 3.9 or higher is installed.
 2. Clone this repository or download the script.
@@ -143,8 +143,9 @@ find_text_simple,replace_text_simple,Example without double quotes
 
 ## ✅ Prerequisites
 
-- Python 3.9 or higher
-- `argparse`, `csv`, `codecs`, `logging`, and `pathlib` modules (standard Python library).
+- **Python 3.9 or higher**
+- **Required Python package(s)**:
+  - `argparse`, `csv`, `codecs`, `logging`, and `pathlib` modules (standard Python library).
 
 ## 📜 License
 
